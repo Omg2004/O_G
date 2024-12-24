@@ -1,12 +1,225 @@
-{
-	"folders": [
-		{
-			"path": "JAVASCRIPT/code.js"
-		}
-	],
-	"settings": {
-		"files.associations": {
-			"iostream": "cpp"
-		}
-	}
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic To-Do List</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 20px;
+            background-color: #6200ea;
+            color: white;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+        }
+
+        .task-input {
+            display: flex;
+            padding: 20px;
+            gap: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .task-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .task-input select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .task-input button {
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 20px;
+        }
+
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            cursor: grab;
+        }
+
+        .task.high {
+            border-left: 5px solid red;
+        }
+
+        .task.medium {
+            border-left: 5px solid orange;
+        }
+
+        .task.low {
+            border-left: 5px solid green;
+        }
+
+        .task button {
+            background-color: #ff5252;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .task button:hover {
+            background-color: #e53935;
+        }
+
+        .task-list.empty {
+            text-align: center;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>To-Do List</h1>
+        </div>
+        <div class="task-input">
+            <input type="text" id="task" placeholder="Enter a new task">
+            <select id="priority">
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+            <button id="addTask">Add</button>
+        </div>
+        <ul id="taskList" class="task-list empty">
+            <li>No tasks yet!</li>
+        </ul>
+    </div>
+
+    <script>
+        const taskInput = document.getElementById("task");
+        const priorityInput = document.getElementById("priority");
+        const addTaskButton = document.getElementById("addTask");
+        const taskList = document.getElementById("taskList");
+
+        // Add a new task
+        addTaskButton.addEventListener("click", () => {
+            const taskValue = taskInput.value.trim();
+            const priorityValue = priorityInput.value;
+
+            if (taskValue === "") {
+                alert("Please enter a task.");
+                return;
+            }
+
+            const task = document.createElement("li");
+            task.classList.add("task", priorityValue);
+            task.draggable = true;
+            task.innerHTML = `
+                <span>${taskValue}</span>
+                <button>Delete</button>
+            `;
+
+            // Delete task functionality
+            task.querySelector("button").addEventListener("click", () => {
+                task.remove();
+                checkEmptyList();
+            });
+
+            // Drag and drop functionality
+            task.addEventListener("dragstart", () => {
+                task.classList.add("dragging");
+            });
+            task.addEventListener("dragend", () => {
+                task.classList.remove("dragging");
+            });
+
+            taskList.appendChild(task);
+            taskInput.value = "";
+
+            checkEmptyList();
+        });
+
+        // Drag and drop sorting
+        taskList.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            const draggingTask = document.querySelector(".dragging");
+            const afterElement = getDragAfterElement(taskList, e.clientY);
+            if (afterElement == null) {
+                taskList.appendChild(draggingTask);
+            } else {
+                taskList.insertBefore(draggingTask, afterElement);
+            }
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll(".task:not(.dragging)")];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // Check if the task list is empty
+        function checkEmptyList() {
+            if (taskList.children.length === 0) {
+                taskList.classList.add("empty");
+                taskList.innerHTML = "<li>No tasks yet!</li>";
+            } else {
+                taskList.classList.remove("empty");
+                if (taskList.querySelector("li").innerText === "No tasks yet!") {
+                    taskList.querySelector("li").remove();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
