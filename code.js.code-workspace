@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "JAVASCRIPT/code.js"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"iostream": "cpp"
+		}
+	}
+}
